@@ -3,11 +3,10 @@ try:
     from colorama import init, Fore
     init()
     from json import loads
-    from importlib import import_module
     from readchar import readchar
     import os
     from time import time
-    import runpy
+    import ast
 except Exception as e:
     print(f"ERROR: {e}")
     input()
@@ -16,7 +15,8 @@ except Exception as e:
 author_colors = {
     "stuff26": Fore.LIGHTMAGENTA_EX,
     "hamulous": Fore.LIGHTWHITE_EX,
-    "jaykrow": Fore.RED
+    "jaykrow": Fore.RED,
+    "unknown": Fore.LIGHTBLACK_EX
 }
 
 def main():
@@ -69,17 +69,19 @@ def main():
                     function_name = available_functions[x]
                     break
 
-            if is_function_compiler:
-                sys.path.append(os.path.join(sys._MEIPASS, "scripts"))
-            else:
-                sys.path.append(os.path.abspath("scripts"))
+            script_path = open_in_exe(os.path.join("scripts", function_name + ".py"))
+            with open(script_path, "r", encoding="utf-8") as f:
+                script_code = f.read()
 
+            use_main = False
             try:
-                function_module = import_module(function_name)
-                function_to_call = getattr(function_module, "main")
-                use_main = True
-            except AttributeError:
-                use_main = False
+                parsed = ast.parse(script_code)
+                for node in parsed.body:
+                    if isinstance(node, ast.FunctionDef) and node.name == "main":
+                        use_main = True
+                        break
+            except Exception as e:
+                print(f"{Fore.LIGHTMAGENTA_EX}ERROR while analyzing script: {e}")
 
             print(f"{Fore.LIGHTBLUE_EX}Executing {Fore.GREEN}{function_name}{Fore.LIGHTBLUE_EX}...")
             display_dashed_line()
@@ -88,13 +90,22 @@ def main():
             while True:
                 try:
                     pre_time = time()
-                    if use_main:
-                        function_to_call()
-                    else:
-                        print(f"{Fore.YELLOW}No 'main()' function found — running top-level code.")
-                        runpy.run_path(open_in_exe(os.path.join("scripts", function_name + ".py")), run_name="__main__")
-                    function_time = time() - pre_time
 
+                    # ✅ Ensure scripts/ path is in sys.path
+                    scripts_path = os.path.abspath(os.path.dirname(script_path))
+                    if scripts_path not in sys.path:
+                        sys.path.insert(0, scripts_path)
+
+                    if use_main:
+                        # ✅ Inject main_has_run flag directly into script code
+                        injected_code = "main_has_run = True\n" + script_code
+                        exec_globals = {"__name__": "__main__", "__file__": script_path}
+                        exec(injected_code, exec_globals)
+                        exec_globals["main"]()
+                    else:
+                        exec(script_code, {"__name__": "__main__", "__file__": script_path})
+
+                    function_time = time() - pre_time
                     display_dashed_line()
                     print(f"\n{Fore.LIGHTMAGENTA_EX}Process completed in {round(function_time, 4)} seconds")
                     print("(press any button to continue)")
@@ -168,7 +179,7 @@ def find_scripts_not_in_config(config):
             for func in group:
                 listed.add(func["function_name"])
 
-    excluded = {"PSDExporterImade", "fix_multi_sprite_frames", "ExportSprites", "Coolimageresizer", "universal_functions"}  # Add your excluded scripts here
+    excluded = {"PSDExporterImade", "fix_multi_sprite_frames", "ExportSprites", "Coolimageresizer", "universal_functions"}
     found = []
     if os.path.exists(script_dir):
         for file in os.listdir(script_dir):
