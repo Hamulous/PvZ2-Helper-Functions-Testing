@@ -1,5 +1,5 @@
 {
-    "version": 1.2,
+    "version": 1.0,
     "functions": {
         "Pam / XFL": [
             {
@@ -7,31 +7,80 @@
                 "details": "Remake XFL data.json with all images found in media, with consistent ID and updated image dimensions",
                 "input": "XFL media",
                 "output": "data.json with XFL media",
-                "function_name": "remake_xfl_datajson"
-            },            {
+                "function_name": "remake_xfl_datajson",
+                "author": "stuff26"
+            },            
+            {
                 "name": "Check For Errors in XFL",
                 "details": "Checks for a few potential issues in XFLs that may prevent converting it to a PAM",
                 "input": "XFL or individual symbol",
                 "output": "Error message with found errors",
-                "function_name": "check_xfl_errors"
-            },            {
+                "function_name": "check_xfl_errors",
+                "author": "stuff26"
+            },            
+            {
                 "name": "Rename Symbol Layers",
                 "details": "Renames all layers in a symbol with a consistent naming scheme",
                 "input": "XFL or individual symbol",
                 "output": "Symbol(s) with renamed layers",
-                "function_name": "rename_anim_layers"
-            },            {
+                "function_name": "rename_anim_layers",
+                "author": "stuff26"
+            },            
+            {
                 "name": "Split Multi Sprite Layers",
                 "details": "Splits up layers that use multiple different sprites",
                 "input": "XFL or individual symbol",
                 "output": "Symbol(s) with splitted layers",
-                "function_name": "split_multi_sprite_layers"
-            },            {
+                "function_name": "split_multi_sprite_layers",
+                "author": "stuff26"
+            },            
+            {
                 "name": "Offset Sprite Positions",
                 "details": "Offsets all sprites in label and main symbols by a desired amount",
                 "input": "XFL or individual symbol",
                 "output": "Symbol(s) with offset sprite positions",
-                "function_name": "offset_anim"
+                "function_name": "offset_anim",
+                "author": "stuff26"
+            },
+            {
+                "name": "Data to Atlas",
+                "Function": "Convert image metadata in data.json to atlas.json for PAM usage",
+                "input": "data.json",
+                "output": "atlas.json",
+                "function_name": "data_to_atlas",
+                "author": "hamulous"
+            },
+            {
+                "name": "Patch TMP References",
+                "Function": "Fix TMP image references and rebuild data.json in XFL projects",
+                "input": ".xfl folder",
+                "output": "Patched media, image XMLs, DOMDocument.xml, data.json",
+                "function_name": "fix_tmp_references",
+                "author": "hamulous"
+            },
+            {
+                "name": "Swap Symbols",
+                "Function": "Rename symbols and associated references in an XFL project",
+                "input": "DOMDocument.xml, media/, image XMLs, (optional) symbol_map.json",
+                "output": "Renamed assets and updated data.json",
+                "function_name": "swap_symbols",
+                "author": "hamulous"
+            },
+            {
+                "name": "Speed up Animation",
+                "Function": "Halve durations and remove every other frame in label XMLs",
+                "input": "XFL project folder",
+                "output": "Faster label XML",
+                "function_name": "speedup_labels",
+                "author": "hamulous"
+            },
+            {
+                "name": "Resize Animation",
+                "Function": "Scale matrix transforms in label XMLs of a PvZ2 XFL project",
+                "input": "XFL project folder",
+                "output": "Scaled label XMLs",
+                "function_name": "resize_label_matrices",
+                "author": "hamulous"
             }
         ],
         "OBB / SCG": [
@@ -40,14 +89,24 @@
                 "details": "Find all SCGs in OBB and add them to data.json",
                 "input": "OBB SCGs",
                 "output": "data.json with SCG groups",
-                "function_name": "remake_obb_datajson"
+                "function_name": "remake_obb_datajson",
+                "author": "stuff26"
             },
             {
                 "name": "Convert Sen 3.0 Resource Group to 4.0 SCG",
                 "details": "Take data from a Sen 3.0 OBB and make a 4.0 SCG with available data",
                 "input": "3.0 resources, spritesheet, other files part of a resource group",
                 "output": "4.0 SCG",
-                "function_name": "sen_rsg_to_scg"
+                "function_name": "sen_rsg_to_scg",
+                "author": "stuff26"
+            },
+            {
+                "name": "Rewrite SCG Data.json",
+                "Function": "Generate a new data.json from SCG animation folders in a package",
+                "input": ".package folder with resource images",
+                "output": "data.json",
+                "function_name": "rewrite_scg_json",
+                "author": "hamulous"
             }
         ],
         "JSON / PACKAGES": [
@@ -56,21 +115,64 @@
                 "details": "Change the coordinates of all map pieces by a certain value",
                 "input": "Worldmap JSON",
                 "output": "Worldmap JSON with changed map piece coordinates",
-                "function_name": "update_worldmap_coordinates"
+                "function_name": "update_worldmap_coordinates",
+                "author": "stuff26"
             },
             {
                 "name": "Organize Plant Files",
                 "details": "Organize plant types, props, levels, and almanac data in a consistent order according to property sheets",
                 "input": "Plant related JSONs",
                 "output": "Organized plant JSONs",
-                "function_name": "organize_plantjsons"
+                "function_name": "organize_plantjsons",
+                "author": "stuff26"
+            },
+            {
+                "name": "Organize Zombie JSONs",
+                "Function": "Reorder ZOMBIETYPES and ZOMBIEPROPERTIES by ZombieAlmanacOrder",
+                "input": "PROPERTYSHEETS.json, ZOMBIETYPES.json, ZOMBIEPROPERTIES.json",
+                "output": "zombietypes_results.json, zombieprops_results.json",
+                "function_name": "organize_zombiejsons",
+                "author": "hamulous"
+            },
+            {
+                "name": "Organize Zombie Actions",
+                "Function": "Reorder ZOMBIEACTIONS.json based on usage in ZOMBIEPROPERTIES.json",
+                "input": "ZOMBIEPROPERTIES.json, ZOMBIEACTIONS.json",
+                "output": "zombieactions_results.json",
+                "function_name": "organize_zombieactions",
+                "author": "hamulous"
             },
             {
                 "name": "Make Zombie and GI Templates",
                 "details": "Make several copies of multiple level maker (or @CurrentLevel) zombie and GI templates",
                 "input": "Templates base JSON",
                 "output": "Template copies",
-                "function_name": "template_copier"
+                "function_name": "template_copier",
+                "author": "stuff26"
+            },
+            {
+                "name": "Bulk Add Costumes",
+                "Function": "Extract costume data from Propertysheets.json into market and store outputs",
+                "input": "Propertysheets.json",
+                "output": "products_output.json, market_schedule_output.json",
+                "function_name": "bulkadd_costumes",
+                "author": "hamulous"
+            },
+            {
+                "name": "Erase Plant Levels",
+                "Function": "Reset all plants in PLANTLEVELS.json to level 1 with no upgrades",
+                "input": "PLANTLEVELS.json",
+                "output": ".patch.json",
+                "function_name": "erase_plant_levels",
+                "author": "hamulous"
+            },
+            {
+                "name": "Organize LawnStrings",
+                "Function": "Alphabetically sort LocStringValues in LawnStrings JSON",
+                "input": "LawnStrings.json",
+                "output": "sorted_LawnStrings.json",
+                "function_name": "sort_lawnstrings",
+                "author": "hamulous"
             }
         ],
         "MISC": [
@@ -79,14 +181,56 @@
                 "details": "Compare a level to OBB files to check for potential errors",
                 "input": "Level JSON",
                 "output": "Message with found errors",
-                "function_name": "check_level_errors"
+                "function_name": "check_level_errors",
+                "author": "stuff26"
             },
             {
                 "name": "PP.DAT Cleaner",
                 "details": "Change the keys for some values in pp.dat jsons to be more readable",
                 "input": "PP.dat as a JSON",
                 "output": "PP.dat with modified keys",
-                "function_name": "clean_ppdat_names"
+                "function_name": "clean_ppdat_names",
+                "author": "stuff26"
+            },
+            {
+                "name": "Dialogue Formatter",
+                "Function": "Convert structured dialogue into LawnStrings-compatible narrative lines",
+                "input": ".txt file with alias and dialogue structure",
+                "output": "out.txt",
+                "function_name": "dialogue",
+                "author": "jaykrow"
+            },
+            {
+                "name": "Cool Image Resizer",
+                "Function": "Trim, resize, and rename PNGs with a prefix in a folder",
+                "input": "Folder of PNGs",
+                "output": "Trimmed and resized PNGs",
+                "function_name": "coolimageresizer",
+                "author": "hamulous"
+            },
+            {
+                "name": "Export Sprites",
+                "Function": "Split a spritesheet PNG into individual PNGs by transparency",
+                "input": "spritesheet PNG",
+                "output": "/sprites folder with individual PNGs",
+                "function_name": "exportsprites",
+                "author": "hamulous"
+            },
+            {
+                "name": "PSD Exporter",
+                "Function": "Export each visible layer from a PSD file as separate PNGs",
+                "input": ".psd file",
+                "output": "/exported_sprites folder with PNGs",
+                "function_name": "psdexporter",
+                "author": "hamulous"
+            },
+            {
+                "name": "Upscale Images",
+                "Function": "Enhance image clarity using OpenCV while avoiding glow corruption",
+                "input": "PNG image or folder",
+                "output": "Enhanced image(s) and backup(s)",
+                "function_name": "enhance_images",
+                "author": "hamulous"
             }
         ]
     }

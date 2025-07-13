@@ -1,84 +1,82 @@
-from os import path, makedirs
-from copy import deepcopy
-from colorama import Fore, init
-import universal_functions as uf
-init()
+import json
+import os
 
-FILES_NEEDED = {"ZOMBIETYPES.json", "ZOMBIEPROPERTIES.json", "PROPERTYSHEETS.json"}
+def get_name(s):
+    """
+        Extracts the name from a string formatted as "RTID(X@Y)".
+    """
+    return s.replace("RTID(", "").replace(")", "").replace("$", "").split("@")[0]
+
 def main():
-            
-    
-    # Get packages files
-    print(f"{Fore.LIGHTBLUE_EX}Enter the desired {Fore.GREEN}packages {Fore.LIGHTBLUE_EX}directory to edit")
-    packages_dir = uf.ask_for_directory(is_file=False, look_for_files=FILES_NEEDED, accept_any=False)
-    file_contents = dict()
-    for file in FILES_NEEDED:
-        file_contents[file] = uf.obtain_json_file_contents(path.join(packages_dir, file), silent=False)["objects"]
-    file_contents_backup = deepcopy(file_contents)
-    
-    # Get almanac order list
-    zombie_almanac_order = None
-    for property_object in file_contents["PROPERTYSHEETS.json"]:
-        if property_object.get("objclass", None) == "GamePropertySheet" and property_object["objdata"].get("ZombieAlmanacOrder", False):
-            zombie_almanac_order = property_object["objdata"]["ZombieAlmanacOrder"]
-            break
-    
-    # Organize zombie types
-    sorted_zombietypes_list = []
-    dummy_zombietypes_list = file_contents["ZOMBIETYPES.json"].copy()
-    for zombie_name in zombie_almanac_order:
-        for zombie_type in dummy_zombietypes_list:
-            try:
-                if zombie_type["objdata"]["TypeName"] == zombie_name:
-                    sorted_zombietypes_list.append(zombie_type)
-                    file_contents["ZOMBIETYPES.json"].remove(zombie_type)
-                    dummy_zombietypes_list.remove(zombie_type)
-                    break
-            except KeyError:
-                continue
+    ztypes_path = input("Enter the path to ZOMBIETYPES.json: ").strip('"')
+    zprops_path = input("Enter the path to ZOMBIEPROPERTIES.json: ").strip('"')
+    psheets_path = input("Enter the path to PROPERTYSHEETS.json: ").strip('"')
 
-    sorted_zombietypes_list.extend(file_contents["ZOMBIETYPES.json"])
-    file_contents["ZOMBIETYPES.json"] = sorted_zombietypes_list
-    
-    # Get list of typnames with props
+    with open(ztypes_path, "r", encoding="utf-8") as zombie_types:
+        zombietypes_contents = json.load(zombie_types)
+    with open(zprops_path, "r", encoding="utf-8") as zombie_props:
+        zombieprops_contents = json.load(zombie_props)
+    with open(psheets_path, "r", encoding="utf-8") as property_sheets:
+        propertysheets_contents = json.load(property_sheets)
+
+    # Get zombie list from property sheet
+    for obj in propertysheets_contents["objects"]:
+        if obj["objclass"] == "GamePropertySheet":
+            zombie_list = obj["objdata"].get("ZombieAlmanacOrder", [])
+            break
+
+    zombietypes_list = zombietypes_contents["objects"]
+    new_zombietypes_list = []
+    for zombiename in zombie_list:
+        for zombietype in zombietypes_list:
+            if "objdata" in zombietype and zombiename == zombietype["objdata"].get("TypeName", None):
+                print(f"Adding {zombiename}")
+                new_zombietypes_list.append(zombietype)
+                zombietypes_list.remove(zombietype)
+                break
+
+    for zombietype in zombietypes_list:
+        if "objdata" in zombietype:
+            print(f"Adding remaining {zombietype['objdata']['TypeName']}")
+            new_zombietypes_list.append(zombietype)
+
     zombie_types_and_props = {}
-    for zombietype in sorted_zombietypes_list:
+    for zombietype in new_zombietypes_list:
         try:
             typename = zombietype["objdata"]["TypeName"]
-            props_name = zombietype["objdata"]["Properties"]
-            props_name = uf.get_name_and_tag(props_name, return_type="name")
-            zombie_types_and_props[typename] = props_name
-        except KeyError:
+            props = get_name(zombietype["objdata"]["Properties"])
+            zombie_types_and_props[typename] = props
+        except:
             continue
 
-    
-    # Organize props
+    zombieprops_list = zombieprops_contents["objects"]
     new_zombieprops_list = []
-    dummy_zombieprops_list = file_contents["ZOMBIEPROPERTIES.json"].copy()
-    for zombie_typename in zombie_types_and_props:
-        for zombie_props in dummy_zombieprops_list:
+    for ztype in zombie_types_and_props:
+        for zombieprop in zombieprops_list:
             try:
-                if zombie_types_and_props[zombie_typename] in zombie_props.get("aliases", []):
-                    new_zombieprops_list.append(zombie_props)
-                    file_contents["ZOMBIEPROPERTIES.json"].remove(zombie_props)
-                    dummy_zombieprops_list.remove(zombie_props)
+                if zombie_types_and_props[ztype] in zombieprop.get("aliases", []):
+                    new_zombieprops_list.append(zombieprop)
+                    zombieprops_list.remove(zombieprop)
                     break
             except KeyError:
-                continue
-    new_zombieprops_list.extend(file_contents["ZOMBIEPROPERTIES.json"])
-    file_contents["ZOMBIEPROPERTIES.json"] = new_zombieprops_list
+                pass
 
-    # Write to files
-    except_list = {"PROPERTYSHEETS.json"}
-    backup_dir = path.join(uf.back_a_directory(packages_dir), "packages_backup")
-    makedirs(backup_dir, exist_ok=True) # Make backup folder
-    for file in FILES_NEEDED:
-        if file not in except_list:
-            backupfile_dir = path.join(backup_dir, file)
-            setup_to_write = lambda file : {"version": 1, "objects": file}
+    for zombieprop in zombieprops_list:
+        new_zombieprops_list.append(zombieprop)
 
-            uf.write_to_file(setup_to_write(file_contents_backup[file]), backupfile_dir, is_json=True)
-            uf.write_to_file(setup_to_write(file_contents[file]), path.join(packages_dir, file), is_json=True)
-    
+    output_dir = os.path.dirname(ztypes_path)
+    types_output_path = os.path.join(output_dir, "zombietypes_results.json")
+    props_output_path = os.path.join(output_dir, "zombieprops_results.json")
+
+    with open(types_output_path, "w", encoding="utf-8") as file:
+        zombietypes_contents["objects"] = new_zombietypes_list
+        json.dump(zombietypes_contents, file, indent=4)
+    with open(props_output_path, "w", encoding="utf-8") as file:
+        zombieprops_contents["objects"] = new_zombieprops_list
+        json.dump(zombieprops_contents, file, indent=4)
+
+    print(f"Saved organized zombietypes to: {types_output_path}")
+    print(f"Saved organized zombieprops to: {props_output_path}")
+
 if __name__ == "__main__":
     main()
